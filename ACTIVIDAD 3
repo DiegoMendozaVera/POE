@@ -1,0 +1,177 @@
+Option Explicit On
+Public Class FRM_ALUMNOS
+
+    'Dim ARCHIVO As New System.IO.StreamWriter("C:\Users\labinf10\Desktop\ACADEMICO (A)\BIN\Debug\ALUMNOS.TXT.TXT")
+    Private Sub BTN_SALIR_Click(sender As Object, e As EventArgs) Handles BTN_SALIR.Click
+        Me.Close()
+    End Sub
+
+    Private Sub BTN_AGREGAR_Click(sender As Object, e As EventArgs) Handles BTN_AGREGAR.Click
+        LBL_TITULO.Text = "AGREGAR ALUMNOS"
+        TXT_CODIGO.Enabled = True
+        TXT_NOMBRE.Enabled = True
+        BTN_AGREGAR.Enabled = False
+        BTN_MODIFICAR.Enabled = False
+        BTN_ELIMINAR.Enabled = False
+        BTN_CANCELAR.Enabled = True
+        TXT_CODIGO.Text = ""
+        TXT_NOMBRE.Text = ""
+        TXT_CODIGO.Focus()
+    End Sub
+
+    Private Sub TXT_CODIGO_TextChanged(sender As Object, e As EventArgs) Handles TXT_CODIGO.TextChanged
+        If TXT_CODIGO.Text = "" Or LBL_TITULO.Text = "ALUMNOS" Then
+            BTN_ACEPTAR.Enabled = False
+        Else
+            BTN_ACEPTAR.Enabled = True
+        End If
+    End Sub
+
+    Private Sub BTN_ACEPTAR_Click(sender As Object, e As EventArgs) Handles BTN_ACEPTAR.Click
+        Dim VALOR, CODIGO, NOMBRE As String
+        If LBL_TITULO.Text = "AGREGAR ALUMNOS" Then
+            For CONTADOR = 0 To LST_ALUMNOS.Items.Count - 1
+                VALOR = LST_ALUMNOS.Items.Item(CONTADOR)
+                If Trim(VALOR.Substring(0, 5)) = TXT_CODIGO.Text Then
+                    MsgBox("ERROR,YA EXISTE EL CÓDIGO")
+                    TXT_CODIGO.SelectionStart = 0
+                    TXT_CODIGO.SelectionLength = TXT_CODIGO.TextLength
+                    TXT_CODIGO.Focus()
+                    Exit Sub
+                End If
+            Next
+        End If
+        If TXT_NOMBRE.Text = "" Then
+            MsgBox("ERROR, DEBE INGRESAR EL NOMBRE")
+            TXT_NOMBRE.Focus()
+            Exit Sub
+        End If
+        CODIGO = Space(5 - TXT_CODIGO.TextLength) & TXT_CODIGO.Text 'PONER ESPACIOS EN BLANCO A LOS ESPACIO QUE FALTAN
+        NOMBRE = TXT_NOMBRE.Text & Space(40 - TXT_NOMBRE.TextLength)
+        VALOR = CODIGO & " " & NOMBRE
+        If LBL_TITULO.Text = "AGREGAR ALUMNOS" Then
+            LST_ALUMNOS.Items.Add(VALOR)
+            TXT_CODIGO.Text = ""
+            TXT_NOMBRE.Text = ""
+            TXT_CODIGO.Focus()
+        Else
+            LST_ALUMNOS.Items.Item(LST_ALUMNOS.SelectedIndex) = VALOR 'index posición donde esta seleccionado
+            TXT_NOMBRE.SelectAll()
+            TXT_NOMBRE.Focus()
+        End If
+    End Sub
+
+    Private Sub BTN_CANCELAR_Click(sender As Object, e As EventArgs) Handles BTN_CANCELAR.Click
+        TXT_CODIGO.Text = ""
+        TXT_NOMBRE.Text = ""
+        TXT_CODIGO.Enabled = False
+        TXT_NOMBRE.Enabled = False
+        BTN_ACEPTAR.Enabled = False
+        BTN_CANCELAR.Enabled = False
+        BTN_AGREGAR.Enabled = True
+        BTN_MODIFICAR.Enabled = True
+        BTN_ELIMINAR.Enabled = True
+        BTN_AGREGAR.Focus()
+
+    End Sub
+
+    Private Sub TXT_CODIGO_KeyPress(sender As Object, e As KeyPressEventArgs) Handles TXT_CODIGO.KeyPress
+        If Not IsNumeric(e.KeyChar()) And Asc(e.KeyChar()) <> 8 Then  'SI CODIGO ES UNA LETRA ENTONCES NO DEJA PRESIONAR ACEPTAR
+            e.Handled = True
+        End If
+    End Sub
+
+    Private Sub LST_ALUMNOS_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LST_ALUMNOS.SelectedIndexChanged
+        Dim VALOR As String
+        If LST_ALUMNOS.SelectedItem <> "" Then
+            VALOR = LST_ALUMNOS.SelectedItem
+            TXT_CODIGO.Text = Trim(VALOR.Substring(0, 5)) ' TRIM PARA SACAR ESPACIOS EN BLANCO
+            TXT_NOMBRE.Text = Trim(VALOR.Substring(6, 36))
+            TXT_CURSO.Text = Trim(VALOR.Substring(37))
+            Dim ARCHIVO As New System.IO.StreamReader("C:\Users\becau\Desktop\ACADEMICO (A)\BIN\Debug\CURSOS.TXT.TXT")
+            Dim REGISTRO As String
+            REGISTRO = ARCHIVO.ReadLine()
+            While REGISTRO <> ""
+                Dim DATOS = REGISTRO.Split(";")
+                If TXT_CURSO.Text = (DATOS(0)) Then
+                    LBL_INFOCURSOS.Text = DATOS(1)
+                End If
+                REGISTRO = ARCHIVO.ReadLine()
+            End While
+            ARCHIVO.Close()
+            BTN_MODIFICAR.Enabled = True
+            BTN_ELIMINAR.Enabled = True
+        End If
+
+    End Sub
+
+    Private Sub FRM_ALUMNOS_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        LBL_TITULO.Text = "ALUMNOS"
+        Dim ARCHIVO As New System.IO.StreamReader("C:\Users\becau\Desktop\ACADEMICO (A)\BIN\Debug\ALUMNOS.TXT.TXT")
+        Dim REGISTRO, CODIGO, NOMBRE, CURSO As String
+        REGISTRO = ARCHIVO.ReadLine()
+        While REGISTRO <> ""
+            Dim VALOR = REGISTRO.Split(";")  'HASTA EL ; 
+            CODIGO = VALOR(0) & Space(5 - VALOR(0).Length)
+            NOMBRE = (VALOR(1) & Space(40 - VALOR(1).Length))
+            CURSO = (Space(5 - VALOR(2).Length) & VALOR(2))
+            LST_ALUMNOS.Items.Add(CODIGO & "      " & NOMBRE & "" & CURSO)
+            REGISTRO = ARCHIVO.ReadLine()
+        End While
+        ARCHIVO.Close()
+    End Sub
+
+    Private Sub BTN_MODIFICAR_Click(sender As Object, e As EventArgs) Handles BTN_MODIFICAR.Click
+        LBL_TITULO.Text = "MODIFICAR ALUMNO"
+        If TXT_CODIGO.Text = "" Then
+            Exit Sub
+        End If
+        TXT_NOMBRE.Enabled = True
+        BTN_ACEPTAR.Enabled = True
+        BTN_CANCELAR.Enabled = True
+        BTN_AGREGAR.Enabled = False
+        BTN_MODIFICAR.Enabled = False
+        BTN_ELIMINAR.Enabled = False
+        TXT_NOMBRE.SelectAll()
+        TXT_NOMBRE.Focus()
+    End Sub
+
+    Private Sub BTN_ELIMINAR_Click(sender As Object, e As EventArgs) Handles BTN_ELIMINAR.Click
+        If TXT_CODIGO.Text = "" Then
+            Exit Sub
+        End If
+        If MsgBox("ESTÁ SEGURO DE ELIMINAR AL ALUMNO?", vbYesNo + vbCritical, "ATECIÓN!") = vbYes Then
+            LST_ALUMNOS.Items.RemoveAt(LST_ALUMNOS.SelectedIndex)
+        End If
+    End Sub
+
+    Private Sub TXT_BUSQUEDACOD_TextChanged(sender As Object, e As EventArgs) Handles TXT_BUSQUEDACOD.TextChanged
+        Dim CONTADOR As Integer
+        Dim REGISTRO As String
+        For CONTADOR = 0 To LST_ALUMNOS.Items.Count - 1
+            REGISTRO = Strings.Left(LST_ALUMNOS.Items(CONTADOR), TXT_BUSQUEDACOD.TextLength)
+            If REGISTRO = TXT_BUSQUEDACOD.Text Then
+                LST_ALUMNOS.SelectedIndex = CONTADOR
+            End If
+        Next
+    End Sub
+
+    Private Sub TXT_BUSQUEDANOM_TextChanged(sender As Object, e As EventArgs) Handles TXT_BUSQUEDANOM.TextChanged
+        Dim CONTADOR As Integer
+        Dim REGISTRO As String
+        For CONTADOR = 0 To LST_ALUMNOS.Items.Count - 1
+            REGISTRO = Strings.Left(LST_ALUMNOS.Items(CONTADOR) + 11, TXT_BUSQUEDANOM.TextLength)
+            If REGISTRO = TXT_BUSQUEDANOM.Text Then
+                LST_ALUMNOS.SelectedIndex = CONTADOR
+            End If
+        Next
+    End Sub
+
+    Private Sub LBL_CODIGOLST_Click(sender As Object, e As EventArgs) Handles LBL_CODIGOLST.Click
+
+    End Sub
+End Class
+'TRY para ver si se cae proque no existe el archivo 
+'    CATCH   variable as exception 
+'    captura el Error y dsp lo puedo corregir
+'END TRY
